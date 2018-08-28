@@ -1,20 +1,25 @@
-var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+
+var routes = require('./server/routes/index');
+var users = require('./server/routes/users');
+var comments = require('./server/controllers/comments');
+
 // 몽구스 ODM
 var mongoose = require('mongoose');
 // 세션 저장용 모듈
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
-// 패스포트와 경고 플래시 메시지 모듈 가져오기
 var passport = require('passport');
 var flash = require('connect-flash');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+var createError = require('http-errors');
 var sassMiddleware = require('node-sass-middleware');
 
-var indexRouter = require('./server/routes/index');
-var usersRouter = require('./server/routes/users');
+// 패스포트와 경고 플래시 메시지 모듈 가져오기
 
 var app = express();
 
@@ -30,13 +35,14 @@ mongoose.connect(config.url);
 mongoose.connection.on('error', function() {
     console.error('MongoDB Connection Error. Make sure MongoDB is running.')
 });
+
 // 패스포트 설정
 require('./server/config/passport')(passport);
 
 
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(sassMiddleware({
     src: path.join(__dirname, 'public'),
@@ -48,7 +54,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // 패스포트용
 // 세션용 비밀키
-app.user(session({
+app.use(session({
     secret: 'sometextgohere',
     saveUninitialized: true,
     resave: true,
@@ -58,6 +64,7 @@ app.user(session({
         collection: 'sessions'
     })
 }));
+
 // 패스포트 인증 초기화
 app.use(passport.initialize());
 // 영구적인 로그인 세션
@@ -65,8 +72,12 @@ app.use(passport.session());
 // 플래시 메시지
 app.use(flash());
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/', routes);
+app.use('/users', users);
+
+app.get('/comments', comments.hasAuthorization, comments.list);
+app.post('/comments', comments.hasAuthorization, comments.create);
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -89,6 +100,7 @@ app.use(function (err, req, res, next) {
 module.exports = app;
 
 app.set('port', process.env.PORT || 3000);
+
 var server = app.listen(app.get('port'), function () {
     console.log('Express server listening on port ' + server.address().port);
 });

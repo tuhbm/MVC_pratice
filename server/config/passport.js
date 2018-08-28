@@ -1,7 +1,7 @@
 // 패스포트 모듈 로드
 var LocalStrategy = require('passport-local').Strategy;
 // user 모델 가져오기
-var User = require('../models/users');
+var User = require('../models/user');
 
 module.exports = function (passport) {
     // 패스포트 초기화 설정
