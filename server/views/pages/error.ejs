@@ -1,0 +1,19 @@
+<!DOCTYPEhtml>
+<html>
+<head>
+    <title>Wohp'sError</title>
+    <%include../partials/stylesheet%>
+</head>
+<body>
+    <%include../partials/header%>
+    <div class="container">
+        <div class="page-headerm-t-1">
+            <h1>Sorry:<%=message%></h1>
+            <h2><%=error.status%></h2>
+            <pre><%=error.stack%></pre>
+        </div>
+    </div>
+    <%include../partials/footer%>
+    <%include../partials/javascript%>
+</body>
+</html>
